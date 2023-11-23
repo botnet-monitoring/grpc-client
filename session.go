@@ -438,6 +438,27 @@ func (s *Session) GetLastFailedTryTime() time.Time {
 	return s.lastFailedTryTime
 }
 
+// GetNumberOfUnsentBotReplies returns the number of unsent bot replies added via [Session.AddBotReply] and [Session.AddBotReplyStruct].
+func (s *Session) GetNumberOfUnsentBotReplies() int {
+	s.unsentBotReplyBatchMutex.Lock()
+	defer s.unsentBotReplyBatchMutex.Unlock()
+	return len(s.unsentBotReplyBatch)
+}
+
+// GetNumberOfUnsentEdges returns the number of unsent edges added via [Session.AddEdge] and [Session.AddEdgeStruct].
+func (s *Session) GetNumberOfUnsentEdges() int {
+	s.unsentEdgeBatchMutex.Lock()
+	defer s.unsentEdgeBatchMutex.Unlock()
+	return len(s.unsentEdgeBatch)
+}
+
+// GetNumberOfUnsentFailedTries returns the number of unsent failed tries added via [Session.AddFailedTry] and [Session.AddFailedTryStruct].
+func (s *Session) GetNumberOfUnsentFailedTries() int {
+	s.unsentFailedTryBatchMutex.Lock()
+	defer s.unsentFailedTryBatchMutex.Unlock()
+	return len(s.unsentFailedTryBatch)
+}
+
 // End ends a session.
 //
 // It will flush all unset batches (e.g. bot replies added via [Session.AddBotReply]) and then communicate to the server that we're not intending to send any further data.
