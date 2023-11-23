@@ -893,6 +893,17 @@ func (s *Session) flushBotRepliesWithContext(ctx context.Context, keepLocked boo
 	// If users want to self check the acknowledged batch IDs, they should use the Send methods directly
 	_, err = s.SendBotReplyBatchWithContext(ctxWithSessionCredentials, &botReplyBatchToSend)
 	if err != nil {
+		// If keepLock, we're in the final sending, if there's an error, we can't do anything to send the batch later
+		// Also makes sure that the lock will be available a few lines down from here
+		if keepLocked {
+			return err
+		}
+
+		// Otherwise re-add the unsuccessfully sent batch before returning the error
+		s.unsentBotReplyBatchMutex.Lock()
+		s.unsentBotReplyBatch = append(s.unsentBotReplyBatch, botReplyBatchToSend...)
+		s.unsentBotReplyBatchMutex.Unlock()
+
 		return err
 	}
 
@@ -921,6 +932,17 @@ func (s *Session) flushEdgesWithContext(ctx context.Context, keepLocked bool) er
 	// If users want to self check the acknowledged batch IDs, they should use the Send methods directly
 	_, err = s.SendEdgeBatchWithContext(ctxWithSessionCredentials, &edgeBatchToSend)
 	if err != nil {
+		// If keepLock, we're in the final sending, if there's an error, we can't do anything to send the batch later
+		// Also makes sure that the lock will be available a few lines down from here
+		if keepLocked {
+			return err
+		}
+
+		// Otherwise re-add the unsuccessfully sent batch before returning the error
+		s.unsentEdgeBatchMutex.Lock()
+		s.unsentEdgeBatch = append(s.unsentEdgeBatch, edgeBatchToSend...)
+		s.unsentEdgeBatchMutex.Unlock()
+
 		return err
 	}
 
@@ -949,6 +971,17 @@ func (s *Session) flushFailedTriesWithContext(ctx context.Context, keepLocked bo
 	// If users want to self check the acknowledged batch IDs, they should use the Send methods directly
 	_, err = s.SendFailedTryBatchWithContext(ctxWithSessionCredentials, &failedTryBatchToSend)
 	if err != nil {
+		// If keepLock, we're in the final sending, if there's an error, we can't do anything to send the batch later
+		// Also makes sure that the lock will be available a few lines down from here
+		if keepLocked {
+			return err
+		}
+
+		// Otherwise re-add the unsuccessfully sent batch before returning the error
+		s.unsentFailedTryBatchMutex.Lock()
+		s.unsentFailedTryBatch = append(s.unsentFailedTryBatch, failedTryBatchToSend...)
+		s.unsentFailedTryBatchMutex.Unlock()
+
 		return err
 	}
 
